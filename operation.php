@@ -1,4 +1,12 @@
 <?php
+    function verifyTable($table){
+        if($table=="odloty")
+            return "odloty";
+        else if($table == "przyloty")
+            return "przyloty";
+        else
+            return null;
+    }
     function verifyUser($data){
         if(! isset($data['user'])) return false;
         $user = $data['user'];
@@ -26,34 +34,48 @@
 
         return $success;
     }
-    $op = null;
-    if(isset($_POST["op"]))
-        $op = $_POST["op"];
-    switch($op){
-        case "login":
-            //Verify the user
-            $verify = verifyUser($_POST);
-            if($verify){
-                //Set the token
-                $expiry = time() + 7200;
-                setcookie("user", $_POST["user"], $expiry);
-                setcookie("pass", $_POST["pass"], $expiry);
-                setcookie("expiry", $expiry, $expiry);
-                echo "Udane logowanie jako ".$_POST["user"];
-            }else{
+
+    function run(){
+        $op = null;
+        if(isset($_POST["op"]))
+            $op = $_POST["op"];
+        switch($op){
+            case "login":
+                //Verify the user
+                $verify = verifyUser($_POST);
+                if($verify){
+                    //Set the token
+                    $expiry = time() + 7200;
+                    setcookie("user", $_POST["user"], $expiry);
+                    setcookie("pass", $_POST["pass"], $expiry);
+                    setcookie("expiry", $expiry, $expiry);
+                    echo "Udane logowanie jako ".$_POST["user"];
+                    return 10000;
+                }else{
+                    setcookie("user", "");
+                    setcookie("pass", "");
+                    echo "Nieprawidłowy login lub hasło";
+                    return 10000;
+                }
+            case "logoff":
                 setcookie("user", "");
                 setcookie("pass", "");
-                echo "Nieprawidłowy login lub hasło";
-            }
-            break;
-        case "logoff":
-            setcookie("user", "");
-            setcookie("pass", "");
-            break;
-        case "insert":
-            //Insert
-            $verify = verifyUser($_COOKIE);
-            if($verify){
+                return 3000;
+            case "insert":
+                //Insert
+                $verify = verifyUser($_COOKIE);
+                if(!$verify){
+                    echo "Nie jesteś zalogowan";
+                    return 10000;
+                }
+                
+                $table0 = $_POST["tab"];
+                $table = verifyTable($table0);
+                if($table == null){
+                    echo "Niepoprawna tabela ", $table0;
+                    return 10000;
+                }
+
                 $id = $_POST["id"];
                 $czas = $_POST["czas"];
                 $dzien = $_POST["dzien"];
@@ -61,13 +83,6 @@
                 $nr_rejsu = $_POST["nr_rejsu"];
                 $samoloty_id = $_POST["samoloty_id"];
                 $status_lotu = $_POST["status_lotu"];
-                $table0 = $_POST["tab"];
-                if(isset($_GET["tab"])) $table = $_GET["tab"];
-                if($table0=="odloty")
-                    $table = "odloty";
-                else if($table0 == "przyloty")
-                    $table = "przyloty";
-                else $table = "ILLEGALTABLE_"+$table0;
 
                 $conn = mysqli_connect("localhost", "root", "", "egzamin");
                 if($id){
@@ -86,23 +101,23 @@
                     $stmt -> close();
                 }
                 $conn -> close();
-            }else{
-                echo "Nie jesteś zalogowan";
-            }
-            break;
-        case "del":
-            $verify = verifyUser($_COOKIE);
-            if($verify){
+                return 0;
+            case "del":
                 //Delete data
-                $id = $_POST["id"];
+                $verify = verifyUser($_COOKIE);
+                if(!$verify){
+                    echo "Nie jesteś zalogowan";
+                    return 10000;
+                }
+                
                 $table0 = $_POST["tab"];
-                if(isset($_GET["tab"])) $table = $_GET["tab"];
-                if($table0=="odloty")
-                    $table = "odloty";
-                else if($table0 == "przyloty")
-                    $table = "przyloty";
-                else $table = "ILLEGALTABLE_"+$table0;
+                $table = verifyTable($table0);
+                if($table == null){
+                    echo "Niepoprawna tabela ", $table0;
+                    return 10000;
+                }
 
+                $id = $_POST["id"];
                 $conn = mysqli_connect("localhost", "root", "", "egzamin");
                 $query = "DELETE FROM ".$table." WHERE id = ?";
                 $stmt = $conn -> prepare($query);
@@ -110,19 +125,19 @@
                 $stmt -> execute();
                 $stmt -> close();
                 $conn -> close();
-            }else{
-                echo "Nie jesteś zalogowan";
-            }
-            
-            break;
-        default:
-            echo "Nieprawidłowa operacja";
+                return 0;
+            default:
+                echo "Nieprawidłowa operacja ", $op;
+        }
     }
+
+    $delay = run();
 ?>
 
-<br> Prekierowanie nastąpi w ciągu 10s
-<script>
-    setTimeout(function(){
-        window.location.replace("lotnisko.php");
-    }, 10000);
-</script>
+<?php
+    if($delay){
+        echo "<br> Prekierowanie nastąpi w ciągu ",($delay/1000),"s <script defer>setTimeout(function(){window.location.replace('lotnisko.php');}, ", $delay, ");</script>";
+    }else{
+        echo "<script defer>window.location.replace('lotnisko.php');</script>";
+    }
+?>
