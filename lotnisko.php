@@ -55,19 +55,22 @@
             </section>
             <section id="right">
                 <!-- Czy użytkownik jest zalogowany? -->
-                <h3><?php 
+                <?php 
                     if(isset($_COOKIE["user"])){
                         $user = $_COOKIE["user"];
                         $expiry = $_COOKIE["expiry"];
                         $expiry0 = date("Y-m-d H:i:s", intval($expiry));
-                        echo "Cześć ", $user;
-                        echo "<br> Sesja wygasa: ", $expiry0;
+                        echo '<h3 class="logout"> Cześć ', $user;
+                        echo '<form name="logout" action="operation.php" method="POST" class="logout">';
+                        echo '<input type="hidden" name="op" value="logoff"/>';
+                        echo '<input type="submit" value="Wyloguj się"/></form>';
+                        echo "Sesja wygasa: ", $expiry0, "</h3>";
                     }else{
-                        echo "Zaloguj się";
+                        echo '<h3 class="logout">Zaloguj się</h3>';
                     }
-                ?></h3>
+                ?>
                 <!-- Formularz logowania, Login:admin, hasło:password -->
-                <form name="logon" method="POST" action="operation.php">
+                <form name="logon" method="POST" action="operation.php" class="logout">
                          <input name="op" type="hidden" value="login"/>
                          <input name="user" type="text" value="Nazwa użytkownika"/>
                     <br> <input name="pass" type="password" value="Hasło"/>

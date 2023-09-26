@@ -9,6 +9,11 @@
     float:left;
     display: block;
 }
+.logout{
+    display: block;
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+}
 #center{
     float: left;
     text-align: center;
