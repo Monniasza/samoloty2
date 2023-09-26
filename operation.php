@@ -26,22 +26,24 @@
 
         return $success;
     }
-
-    $op = $_POST["op"];
-    echo $op;
-    //$user = $_COOKIE["user"];
-    //$pass = $_COOKIE["pass"];
+    $op = null;
+    if(isset($_POST["op"]))
+        $op = $_POST["op"];
     switch($op){
         case "login":
             //Verify the user
             $verify = verifyUser($_POST);
             if($verify){
                 //Set the token
-                setcookie("user", $_POST["user"]);
-                setcookie("pass", $_POST["pass"]);
+                $expiry = time() + 7200;
+                setcookie("user", $_POST["user"], $expiry);
+                setcookie("pass", $_POST["pass"], $expiry);
+                setcookie("expiry", $expiry, $expiry);
+                echo "Udane logowanie jako ".$_POST["user"];
             }else{
                 setcookie("user", "");
                 setcookie("pass", "");
+                echo "Nieprawidłowy login lub hasło";
             }
             break;
         case "logoff":
@@ -58,28 +60,62 @@
                 $nr_rejsu = $_POST["nr_rejsu"];
                 $samoloty_id = $_POST["samoloty_id"];
                 $status_lotu = $_POST["status_lotu"];
+                $table0 = $_POST["tab"];
+                if(isset($_GET["tab"])) $table = $_GET["tab"];
+                if($table0=="odloty")
+                    $table = "odloty";
+                else if($table0 == "przyloty")
+                    $table = "przyloty";
+                else $table = "ILLEGALTABLE_"+$table0;
 
                 $conn = mysqli_connect("localhost", "root", "", "egzamin");
                 if($id){
                     //Edit existing
-                    $query = "UPDATE odloty SET czas=?, dzien=?, kierunek=?, nr_rejsu=?, samoloty_id=?, status_lotu=? WHERE id=?";
+                    $query = "UPDATE ".$table." SET czas=?, dzien=?, kierunek=?, nr_rejsu=?, samoloty_id=?, status_lotu=? WHERE id=?";
                     $stmt = $conn -> prepare($query);
-                    $stmt -> bind_param("ssssnsn", $czas, $dzien, $kierunek, $nr_rejsu, $samoloty_id, $status_lotu, $id);
+                    $stmt -> bind_param("ssssisi", $czas, $dzien, $kierunek, $nr_rejsu, $samoloty_id, $status_lotu, $id);
                     $stmt -> execute();
+                    $stmt -> close();
                 }else{
                     //Add new
+                    $query = "INSERT INTO ".$table."(czas,dzien,kierunek,nr_rejsu,samoloty_id,status_lotu) VALUES(?, ?, ?, ?, ?, ?)";
+                    $stmt = $conn -> prepare($query);
+                    $stmt -> bind_param("ssssis", $czas, $dzien, $kierunek, $nr_rejsu, $samoloty_id, $status_lotu);
+                    $stmt -> execute();
+                    $stmt -> close();
                 }
                 $conn -> close();
             }else{
                 echo "Nie jesteś zalogowan";
             }
             break;
+        case "del":
+            //Delete data
+            $id = $_POST["id"];
+            $table0 = $_POST["tab"];
+            if(isset($_GET["tab"])) $table = $_GET["tab"];
+            if($table0=="odloty")
+                $table = "odloty";
+            else if($table0 == "przyloty")
+                $table = "przyloty";
+            else $table = "ILLEGALTABLE_"+$table0;
+
+            $conn = mysqli_connect("localhost", "root", "", "egzamin");
+            $query = "DELETE FROM ".$table." WHERE id = ?";
+            $stmt = $conn -> prepare($query);
+            $stmt -> bind_param("i", $id);
+            $stmt -> execute();
+            $stmt -> close();
+            $conn -> close();
+            break;
+        default:
+            echo "Nieprawidłowa operacja";
     }
 ?>
 
-Prekierowanie nastąpi w ciągu 10s
+<br> Prekierowanie nastąpi w ciągu 10s
 <script>
     setTimeout(function(){
-        window.location.replace("samoloty.php");
+        window.location.replace("lotnisko.php");
     }, 10000);
 </script>
