@@ -80,47 +80,47 @@
             </section>
         </section>
         <section id="main">
-            <table>
-                <tr>
-                    <th>ID <?php
-                        global $decl;
-                        $decl = substr($table, 0, strlen($table)-1)."u";
-                        echo $decl;
-                    ?></th>
-                    <th>czas</th>
-                    <th>data</th>
-                    <th>kierunek</th>
-                    <th>numer rejsu</th>
-                    <th>numer samolotu</th>
-                    <th>status</th>
-                </tr>
-                <?php
-                    $conn = mysqli_connect("localhost", "root", null, "egzamin");
-                    $query = "SELECT czas, kierunek, nr_rejsu, status_lotu, id, samoloty_id, dzien FROM ".$table." WHERE czas >= ? AND czas <= ? ORDER BY czas ASC";
-                    $stmt = $conn -> prepare($query);
-                    $stmt ->bind_param("ss", $from, $to);
-                    $stmt -> execute();
-                    $result = $stmt -> get_result();
-                    while($row = mysqli_fetch_row($result)){
-                        $czas = $row[0];
-                        $kierunak = $row[1];
-                        $nr = $row[2];
-                        $status = $row[3];
-                        $id = $row[4];
-                        $samolot = $row[5];
-                        $day = $row[6];
-                        echo "<tr><td>", $id, "</td><td>", $czas, "</td><td>", $day, "</td><td>", $kierunak, "</td><td>", $nr, "</td><td>", $samolot, "</td><td>", $status, "</td></tr>";
-                    }
-                    mysqli_close($conn);
-                ?>
-            </table>
-            <!-- Formularz dodawania/edycji -->
             <form name="edit" method="POST" action="operation.php">
-                <?php echo '<input name="tab" type="hidden" value="'.$table.'"/>'?>
-                <input name="op" type="hidden" value="insert"/>
-                Wpisz ID <?php echo $decl; ?> do edycji, lub 0 do dodania nowego przylotu
-                <input type="submit" value="Prześlij"/>
                 <table>
+                    <tr>
+                        <th>ID <?php
+                            global $decl;
+                            $decl = substr($table, 0, strlen($table)-1)."u";
+                            echo $decl;
+                        ?></th>
+                        <th>czas</th>
+                        <th>data</th>
+                        <th>kierunek</th>
+                        <th>numer rejsu</th>
+                        <th>numer samolotu</th>
+                        <th>status</th>
+                    </tr>
+                    <?php
+                        $conn = mysqli_connect("localhost", "root", null, "egzamin");
+                        $query = "SELECT czas, kierunek, nr_rejsu, status_lotu, id, samoloty_id, dzien FROM ".$table." WHERE czas >= ? AND czas <= ? ORDER BY czas ASC";
+                        $stmt = $conn -> prepare($query);
+                        $stmt ->bind_param("ss", $from, $to);
+                        $stmt -> execute();
+                        $result = $stmt -> get_result();
+                        while($row = mysqli_fetch_row($result)){
+                            $czas = $row[0];
+                            $kierunak = $row[1];
+                            $nr = $row[2];
+                            $status = $row[3];
+                            $id = $row[4];
+                            $samolot = $row[5];
+                            $day = $row[6];
+                            echo "<tr><td>", $id, "</td><td>", $czas, "</td><td>", $day, "</td><td>", $kierunak, "</td><td>", $nr, "</td><td>", $samolot, "</td><td>", $status, "</td></tr>";
+                        }
+                        mysqli_close($conn);
+                    ?>
+                    <!-- Formularz dodawania/edycji (w tej samej tabeli) -->
+                    <tr> <td colspan=7>
+                            <?php echo '<input name="tab" type="hidden" value="'.$table.'"/>'?>
+                            <input name="op" type="hidden" value="insert"/>
+                            Wpisz ID <?php echo $decl; ?> do edycji, lub 0 do dodania nowego przylotu
+                            <input type="submit" value="Prześlij"/>
+                    </td> </tr>
                     <tr>
                         <th>ID lub wstaw</th>
                         <th>Czas</th>
