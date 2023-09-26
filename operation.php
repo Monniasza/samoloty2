@@ -49,6 +49,7 @@
         case "logoff":
             setcookie("user", "");
             setcookie("pass", "");
+            break;
         case "insert":
             //Insert
             $verify = verifyUser($_COOKIE);
@@ -90,23 +91,29 @@
             }
             break;
         case "del":
-            //Delete data
-            $id = $_POST["id"];
-            $table0 = $_POST["tab"];
-            if(isset($_GET["tab"])) $table = $_GET["tab"];
-            if($table0=="odloty")
-                $table = "odloty";
-            else if($table0 == "przyloty")
-                $table = "przyloty";
-            else $table = "ILLEGALTABLE_"+$table0;
+            $verify = verifyUser($_COOKIE);
+            if($verify){
+                //Delete data
+                $id = $_POST["id"];
+                $table0 = $_POST["tab"];
+                if(isset($_GET["tab"])) $table = $_GET["tab"];
+                if($table0=="odloty")
+                    $table = "odloty";
+                else if($table0 == "przyloty")
+                    $table = "przyloty";
+                else $table = "ILLEGALTABLE_"+$table0;
 
-            $conn = mysqli_connect("localhost", "root", "", "egzamin");
-            $query = "DELETE FROM ".$table." WHERE id = ?";
-            $stmt = $conn -> prepare($query);
-            $stmt -> bind_param("i", $id);
-            $stmt -> execute();
-            $stmt -> close();
-            $conn -> close();
+                $conn = mysqli_connect("localhost", "root", "", "egzamin");
+                $query = "DELETE FROM ".$table." WHERE id = ?";
+                $stmt = $conn -> prepare($query);
+                $stmt -> bind_param("i", $id);
+                $stmt -> execute();
+                $stmt -> close();
+                $conn -> close();
+            }else{
+                echo "Nie jesteś zalogowan";
+            }
+            
             break;
         default:
             echo "Nieprawidłowa operacja";
